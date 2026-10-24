@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>决策天平 · 保研/考研/留学/就业 四赛道模拟器</title>
+<style>
+:root{
+  --bg:#F4F4F1; --panel:#FFFFFF; --soft:#FAFAF8;
+  --ink:#23282B; --ink2:#3D4448; --muted:#6E757A; --faint:#9AA1A5;
+  --line:#DFDFDA; --line2:#ECECE8;
+  --c1:#54789A; --c2:#8778A8; --c3:#6C8C79; --c4:#B0895F;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--ink);
+  font:13px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+header{
+  height:46px; display:flex; align-items:center; gap:12px;
+  padding:0 16px; border-bottom:1px solid var(--line); background:#F8F8F6;
+}
+.brand{font-size:15px;font-weight:600;letter-spacing:.5px}
+.brand small{font-weight:400;color:var(--muted);margin-left:8px;font-size:12px}
+.hd-note{margin-left:auto;color:var(--muted);font-size:12px}
+.hd-btn{
+  border:1px solid var(--line);background:#fff;color:var(--ink2);
+  border-radius:6px;padding:4px 9px;font-size:12px;cursor:pointer;font-family:inherit;
+}
+.hd-btn:hover{background:#EFF1F0}
+
+.wrap{padding:10px 16px 0}
+.layout{display:grid;grid-template-columns:294px minmax(560px,1fr);gap:12px;align-items:start}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.card h3{margin:0 0 2px;font-size:12.5px;font-weight:600;letter-spacing:.3px}
+.card .sub{color:var(--faint);font-size:11px;margin:0 0 8px}
+
+/* ---------- 输入区 ---------- */
+.inputs{max-height:calc(100vh - 128px);overflow:auto}
+.f{margin-bottom:9px}
+.f label{display:block;font-size:11.5px;color:var(--muted);margin-bottom:3px}
+.f label b{color:var(--ink2);font-weight:600}
+select,input[type=range]{width:100%;font-family:inherit}
+select{
+  border:1px solid var(--line);border-radius:5px;padding:4px 6px;font-size:12px;
+  background:#fff;color:var(--ink);height:28px;
+}
+input[type=range]{-webkit-appearance:none;height:18px;background:transparent;margin:0}
+input[type=range]::-webkit-slider-runnable-track{height:4px;background:#E2E2DE;border-radius:2px}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:13px;height:13px;border-radius:50%;
+  background:#fff;border:2px solid var(--ink2);margin-top:-5px;cursor:pointer;
+}
+input[type=range]::-moz-range-track{height:4px;background:#E2E2DE;border-radius:2px}
+input[type=range]::-moz-range-thumb{width:11px;height:11px;border-radius:50%;background:#fff;border:2px solid var(--ink2);cursor:pointer}
+.rv{float:right;color:var(--ink2);font-variant-numeric:tabular-nums}
+.fsec{font-size:11px;color:var(--faint);margin:12px 0 6px;border-top:1px dashed var(--line);padding-top:8px;letter-spacing:.5px}
+.fsec:first-child{border-top:0;margin-top:0;padding-top:0}
+.mini-note{font-size:11px;color:var(--faint);line-height:1.5;margin-top:6px;border-top:1px dashed var(--line);padding-top:7px}
+
+/* ---------- 结果区 ---------- */
+.results{display:grid;gap:10px;max-height:calc(100vh - 128px);overflow:auto;padding-right:2px}
+
+/* 概率行 */
+.prow{display:grid;grid-template-columns:74px 1fr 96px 46px;align-items:center;gap:8px;padding:3px 0;cursor:pointer}
+.prow:hover{background:#F7F7F5;border-radius:5px}
+.prow.sel{background:#F0F1EF;border-radius:5px;box-shadow:inset 2px 0 0 var(--ink2)}
+.pname{display:flex;align-items:center;gap:5px;font-size:12.5px;font-weight:600}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.pbar{position:relative;height:16px;background:#F0F0ED;border-radius:3px;overflow:hidden}
+.pband{position:absolute;top:3px;height:10px;border-radius:2px;opacity:.85}
+.pmid{position:absolute;top:1px;width:2px;height:14px;background:var(--ink);opacity:.55}
+.pghost{position:absolute;top:0;height:16px;border:1px dashed var(--ink2);border-radius:3px;opacity:.55}
+.pnum{font-size:12px;font-variant-numeric:tabular-nums;color:var(--ink2);text-align:right}
+.pnum .d{color:var(--muted);font-size:11px}
+.chip{
+  display:inline-block;border-radius:4px;font-size:11px;text-align:center;
+  padding:1px 5px;border:1px solid var(--line);color:var(--muted);background:#FAFAF8;
+}
+.chip.hi{border-color:#B9C4CE;color:#3D566B;background:#EDF1F4}
+.chip.mid{border-color:#C6C2CE;color:#574F6B;background:#F1EFF4}
+.chip.lo{border-color:#C7BFAE;color:#6E5F49;background:#F5F1E9}
+.prob-head{display:grid;grid-template-columns:74px 1fr 96px 46px;gap:8px;font-size:11px;color:var(--faint);padding-bottom:2px}
+
+/* 成本图 */
+.costgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.cg h4{margin:0 0 5px;font-size:11.5px;font-weight:600;color:var(--ink2)}
+.cg h4 span{font-weight:400;color:var(--faint);font-size:10.5px;margin-left:4px}
+.cgrow{display:grid;grid-template-columns:38px 1fr 54px;gap:6px;align-items:center;margin-bottom:4px}
+.cgname{font-size:11px;color:var(--muted)}
+.cgtrack{position:relative;height:14px}
+.barnow{position:absolute;left:0;top:0;height:6px;border-radius:2px}
+.bargh{position:absolute;left:0;top:8px;height:6px;border-radius:2px;opacity:.5;
+  background-image:repeating-linear-gradient(90deg,rgba(35,40,43,.55) 0 3px,transparent 3px 6px)}
+.cgval{font-size:11px;text-align:right;font-variant-numeric:tabular-nums;color:var(--ink2)}
+.cgval .gd{color:var(--muted);font-size:10.5px}
+.toggle{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--ink2);cursor:pointer;user-select:none}
+.toggle input{margin:0}
+.legend{display:flex;gap:12px;font-size:10.5px;color:var(--faint);margin-top:6px;flex-wrap:wrap}
+.legend i{display:inline-block;width:14px;height:6px;border-radius:2px;vertical-align:middle;margin-right:3px}
+.legend i.g{background-image:repeating-linear-gradient(90deg,rgba(35,40,43,.55) 0 3px,transparent 3px 6px);height:6px;border:1px solid var(--line)}
+
+/* 权重 */
+.wgrid{display:grid;grid-template-columns:1fr 210px;gap:12px}
+.wrow{display:grid;grid-template-columns:70px 1fr 44px;gap:8px;align-items:center;margin-bottom:5px}
+.wrow label{font-size:11.5px;color:var(--ink2)}
+.wval{font-size:11px;color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
+.rankbox{border-left:1px solid var(--line);padding-left:12px}
+.rk{display:flex;align-items:center;gap:6px;margin-bottom:4px;font-size:12px}
+.rk .no{width:16px;height:16px;border-radius:4px;background:#EFEFEC;color:var(--muted);font-size:10px;display:flex;align-items:center;justify-content:center}
+.rk.top .no{background:var(--ink);color:#fff}
+.rk .sc{margin-left:auto;color:var(--faint);font-size:11px;font-variant-numeric:tabular-nums}
+.balwrap{display:flex;align-items:center;gap:10px;margin-top:8px}
+.balnote{font-size:11px;color:var(--muted);line-height:1.5}
+
+/* 详情 */
+.detail{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.dcol h5{margin:0 0 5px;font-size:11.5px;font-weight:600;color:var(--ink2);display:flex;align-items:center;gap:6px}
+.acts{list-style:none;margin:0;padding:0}
+.acts li{display:flex;gap:6px;font-size:12px;line-height:1.55;padding:3px 0;border-bottom:1px dashed var(--line2)}
+.acts li:last-child{border-bottom:0}
+.acts input{margin:3px 0 0;flex:0 0 auto}
+.acts.done span{text-decoration:line-through;color:var(--faint)}
+.worst{background:#FAFAF8;border:1px solid var(--line);border-radius:6px;padding:8px 10px;font-size:12px;line-height:1.6}
+.kv{font-size:12px;line-height:1.7}
+.kv b{font-weight:600}
+.kv .lv{color:var(--muted);font-size:11px}
+.assum{font-size:11.5px;color:var(--muted);line-height:1.6;margin-top:6px;border-top:1px dashed var(--line);padding-top:6px}
+.noanswer{font-size:11px;color:var(--faint);margin-top:8px;border-top:1px dashed var(--line);padding-top:6px}
+
+/* 底部常驻方法条 */
+.method{
+  margin:10px 16px 14px;border:1px solid var(--line);background:#F8F8F6;border-radius:8px;
+  padding:8px 12px;font-size:11px;color:var(--muted);line-height:1.65;
+}
+.method b{color:var(--ink2);font-weight:600}
+.method .mrow{display:flex;gap:14px;flex-wrap:wrap}
+.method .mrow span{white-space:nowrap}
+
+/* 弹层 */
+.mask{position:fixed;inset:0;background:rgba(35,40,43,.28);display:none;align-items:center;justify-content:center;z-index:50}
+.mask.on{display:flex}
+.modal{background:#fff;border-radius:10px;max-width:660px;width:92%;max-height:82vh;overflow:auto;padding:18px 20px;box-shadow:0 8px 30px rgba(0,0,0,.12)}
+.modal h3{margin:0 0 10px;font-size:14px}
+.modal h4{margin:14px 0 4px;font-size:12.5px}
+.modal p,.modal li{font-size:12px;line-height:1.75;color:var(--ink2)}
+.modal ul{margin:4px 0;padding-left:18px}
+.modal .close{float:right;border:1px solid var(--line);background:#fff;border-radius:6px;padding:3px 9px;cursor:pointer;font-size:12px;font-family:inherit}
+.srconly{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+@media (max-width:1080px){
+  .layout{grid-template-columns:1fr}
+  .inputs,.results{max-height:none}
+  .detail{grid-template-columns:1fr}
+  .wgrid{grid-template-columns:1fr}
+  .rankbox{border-left:0;padding-left:0;border-top:1px solid var(--line);padding-top:8px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">决策天平 <small>保研 / 考研 / 留学 / 就业 四赛道模拟器</small></div>
+  <div class="hd-note">本工具不替你做决定 —— 它只摊开区间、成本与最坏情况</div>
+  <button class="hd-btn" id="btnMethod">模型假设与样本来源</button>
+  <button class="hd-btn" id="btnExport">导出决策报告（Markdown）</button>
+  <button class="hd-btn" id="btnReset">恢复默认画像</button>
+</header>
+
+<div class="wrap">
+  <div class="layout">
+    <!-- 输入 -->
+    <section class="card inputs" id="inputsCard">
+      <h3>个人参数（13 项）</h3>
+      <p class="sub">全部为本地输入，不采集手机号 / 姓名 / 学校等身份信息</p>
+      <div id="fields"></div>
+      <div class="mini-note" id="personaNote"></div>
+    </section>
+
+    <!-- 结果 -->
+    <section class="results">
+      <div class="card">
+        <h3>① 四条赛道的成功概率区间</h3>
+        <p class="sub">区间而非点估计；点击任一赛道查看 6 个月行动清单与最坏情况预案</p>
+        <div class="prob-head"><span>赛道</span><span>概率区间（0–100%）</span><span style="text-align:right">区间</span><span style="text-align:right">置信</span></div>
+        <div id="probs"></div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:6px">
+          <h3 style="margin:0">② 成本横向对比 <span style="font-weight:400;color:var(--faint);font-size:11px">＋「如果推迟一年」对照</span></h3>
+          <label class="toggle"><input type="checkbox" id="delayOn">显示「如果推迟一年」对照线</label>
+        </div>
+        <div class="costgrid" id="costs"></div>
+        <div class="legend">
+          <span><i style="background:var(--ink2)"></i>按当前计划</span>
+          <span><i class="g"></i>推迟一年（虚线）</span>
+          <span>机会成本 = 相对立即就业所放弃的税前收入现值（已扣学历溢价）</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>③ 权重滑块 · 排序随你拖动而变</h3>
+        <p class="sub">权重只改变排序依据，不改变概率本身；排序是取舍的镜像，不是建议</p>
+        <div class="wgrid">
+          <div id="weights"></div>
+          <div class="rankbox">
+            <div style="font-size:11px;color:var(--faint);margin-bottom:6px">当前权重下的排序</div>
+            <div id="rank"></div>
+            <div class="balwrap">
+              <svg id="bal" width="120" height="86" viewBox="0 0 120 86" aria-label="天平隐喻"></svg>
+              <div class="balnote" id="balnote"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>④ 选中赛道 · 未来 6 个月关键动作　|　⑤ 最坏情况预案</h3>
+        <p class="sub" id="detailSub"></p>
+        <div class="detail">
+          <div class="dcol">
+            <h5>关键变量（按「可提升空间 × 权重」取前 3）<span class="chip" id="selConf"></span></h5>
+            <div class="kv" id="keyvars"></div>
+            <div class="assum" id="assum"></div>
+          </div>
+          <div class="dcol">
+            <h5>6 个月关键动作清单（≤5 条）</h5>
+            <ul class="acts" id="acts"></ul>
+            <div class="worst" id="worst" style="margin-top:10px"></div>
+            <div class="noanswer">最坏情况预案描述的是路径约束与可切换窗口，不涉及对个人能力的评价。</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<div class="method">
+  <div class="mrow">
+    <span><b>概率含义</b>：同类画像人群中的条件频率，不是对你个人的因果预测</span>
+    <span><b>区间</b>：约 80% 置信带，由参数不确定性传播近似，非贝叶斯后验</span>
+    <span><b>样本</b>：保研 42 校推免公示 n≈12,400；考研 报录比＋队列 n≈860；留学 队列 n≈860＋院校公开录取区间；就业 队列 n≈860＋校招统计 n≈310</span>
+    <span><b>已知偏差</b>：咨询队列为自报告样本，存在选择与幸存者偏差；样本以理工科与经管类为主</span>
+    <span><b>精度</b>：概率取整到 5 个百分点，刻意不做更细的区分</span>
+  </div>
+</div>
+
+<div class="mask" id="mask">
+  <div class="modal">
+    <button class="close" id="btnClose">关闭</button>
+    <h3>模型假设、方法与样本来源（不可关闭的披露）</h3>
+    <div id="methodBody"></div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   决策天平 · 数据层
+   ============================================================ */
+/*==DATA_JSON_START==*/
+const APP_DATA = {
+  fields: [
+    {k:'gpa', t:'range', label:'当前 GPA（4.0 制）', min:2.0, max:4.0, step:0.1, unit:'', fmt:v=>v.toFixed(1)},
+    {k:'rank', t:'select', label:'专业排名', opts:[
+      ['r5','前 5%'],['r10','前 10%'],['r20','前 20%'],['r35','前 35%'],['r50','前 50%'],['r50p','50% 以后']]},
+    {k:'english', t:'select', label:'英语水平（已取得的最高一项）', opts:[
+      ['e0','暂无成绩'],['e4','CET-4'],['e6a','CET-6 425–480'],['e6b','CET-6 490–540'],['e65','雅思 6.5 / 托福 85'],['e70','雅思 7.0 / 托福 95+']]},
+    {k:'research', t:'select', label:'科研经历', opts:[
+      ['r0','无'],['r1','参与课题组'],['r2','校级项目负责'],['r3','论文在投'],['r4','已发表']]},
+    {k:'competition', t:'select', label:'竞赛获奖（最高一项）', opts:[
+      ['c0','无'],['c1','校级奖'],['c2','省级奖'],['c3','国家级奖']]},
+    {k:'internship', t:'select', label:'实习经历', opts:[
+      ['i0','无'],['i1','1 段'],['i2','2 段及以上'],['i3','名企 / 大厂']]},
+    {k:'budget', t:'range', label:'家庭可投入预算（万元）', min:0, max:80, step:5, fmt:v=>v+' 万'},
+    {k:'prep', t:'range', label:'可投入备考时长（月）', min:3, max:12, step:1, fmt:v=>v+' 月'},
+    {k:'risk', t:'select', label:'风险偏好', opts:[['k0','保守：优先确定性'],['k1','中性'],['k2','进取：可接受高波动']]},
+    {k:'city', t:'select', label:'地域偏好', opts:[['c1','一线城市'],['c2','新一线'],['c3','家乡 / 其他'],['c4','不限']]},
+    {k:'tier', t:'select', label:'目标院校 / 岗位层级', opts:[['t0','本校 / 保底'],['t1','同档'],['t2','高一档'],['t3','冲刺顶尖']]},
+    {k:'gap', t:'select', label:'是否接受 gap 年', opts:[['g0','不接受'],['g1','看情况'],['g2','接受']]},
+    {k:'industry', t:'select', label:'目标行业景气', opts:[['u1','上升'],['u2','平稳'],['u3','承压']]}
+  ],
+  tracks: [
+    {
+      id:'baoyan', name:'保研', color:'#54789A',
+      def:'凭排名与加分项取得推免资格',
+      base:{min:5,max:78}, width:14, confCap:0,
+      factors:{rank:.38,gpa:.22,research:.16,competition:.12,english:.07,internship:.05},
+      riskVol:.25,
+      assum:'名额按本校近三年公示率均值估计；排名与加分项为主决定量',
+      actions:[
+        '索取近三年推免名额表与加分细则',
+        '估算自己在名额线内外的浮动位次',
+        '补 1 项可核验加分项：省奖或论文',
+        '联系 2–3 位导师确认接收意向',
+        '设 6、9 月两个复核节点重算'
+      ],
+      worst:'未获名额：9 月底前可转考研或先就业；名额是学校约束，非能力评价',
+      conf:'样本 n≈12,400 为客观公示；排名自报告时区间再偏 ±10pp'
+    },
+    {
+      id:'kaoyan', name:'考研', color:'#8778A8',
+      def:'参加统考，按初试与复试录取',
+      base:{min:10,max:66}, width:16, confCap:1,
+      factors:{prep:.28,english:.22,gpa:.18,rank:.12,research:.10,competition:.10},
+      riskVol:.80,
+      assum:'统考成绩主导；初试与复试按院校公示权重加权；二战与应届同台',
+      actions:[
+        '定 1 主 2 备，记三年分数线中位数',
+        '按周排三轮复习，留 2 周缓冲',
+        '第 3 月全真模考，据此调志愿',
+        '提前备复试英文与专业问题',
+        '留 1 份实习成果作落榜兜底'
+      ],
+      worst:'未上岸：二战、调剂、就业三通道仍开；分数线影响大于能力差',
+      conf:'队列 n≈860 为自报告，幸存者偏差明显；分数线波动未建模'
+    },
+    {
+      id:'liuxue', name:'留学', color:'#6C8C79',
+      def:'申请境外院校，按整体画像录取',
+      base:{min:15,max:80}, width:18, confCap:2,
+      factors:{english:.26,gpa:.22,research:.20,budget:.16,competition:.08,internship:.08},
+      riskVol:.60,
+      assum:'混合样本录取率估计；语言与科研为主门槛；奖学金随机性未建模',
+      actions:[
+        '选 6–8 所，分冲刺/匹配/保底三档',
+        '语言首考定档，留 1 次重考窗口',
+        '把 1 段科研整理成英文材料',
+        '提前 8 周联系 2 位推荐人',
+        '核算总花费与汇率，确认上限'
+      ],
+      worst:'全拒或超支：保留重申、考研、就业三通道；拒信是筛选结果',
+      conf:'队列 n≈860 选择偏差大，录取画像透明度低，故区间更宽'
+    },
+    {
+      id:'jiuye', name:'就业', color:'#B0895F',
+      def:'进入校招，实习与景气主导',
+      base:{min:25,max:86}, width:12, confCap:1,
+      factors:{internship:.34,competition:.18,english:.16,industry:.16,gpa:.10,city:.06},
+      riskVol:.45,
+      assum:'校招 offer 率估计；实习与行业景气为主导；不含考公与创业',
+      actions:[
+        '定 2 个岗位族，提取 JD 共同要求',
+        '补 1 段对口实习或可展示项目',
+        '做可量化简历，请校友过一遍',
+        '按秋招/春招节奏投递，周复盘',
+        '备 1 个备选城市或岗位族'
+      ],
+      worst:'未获满意 offer：可延春招、转留用；offer 随行业周期波动',
+      conf:'队列 n≈860、校招 n≈310；景气变化快，半年外可靠性下降'
+    }
+  ],
+  crit: [
+    {k:'prob', label:'成功概率', desc:'区间中值越高越好'},
+    {k:'time', label:'时间成本', desc:'投入月数越少越好'},
+    {k:'money', label:'金钱成本', desc:'直接花费越少越好'},
+    {k:'opp', label:'机会成本', desc:'放弃收入越少越好'},
+    {k:'risk', label:'风险匹配', desc:'与你的风险偏好越近越好'}
+  ],
+  delayRules: {
+    baoyan:{dp:-15, dtime:6, dmoney:3, dopp:6, why:'推免资格与应届身份绑定，延后一年通常失去排队位次'},
+    kaoyan:{dp:6,  dtime:12, dmoney:2, dopp:10, why:'多一年备考；样本显示二战上岸率高于一战约 6 个百分点，但该样本选择偏差明显'},
+    liuxue:{dp:4,  dtime:12, dmoney:3, dopp:10, why:'可补语言与科研，院校对 gap 年接受度较高；学费按年涨约 5% 计'},
+    jiuye:{dp:3,   dtime:6,  dmoney:1, dopp:8,  why:'多一段实习可提升 offer 率，代价是少一年工龄与晋升序列'}
+  },
+  method: {
+    model:'加权线性打分 → 区间映射（各因子独立可加，未建模交互项与时序效应）',
+    meaning:'输出为「在同类画像人群中的条件频率」，不是对个人的因果预测，也不含努力程度的因果回报',
+    band:'区间为约 80% 置信带的工程近似，由参数不确定性与样本量传播得到，非严格贝叶斯后验',
+    samples:[
+      '保研：42 所高校 2022–2024 推免名额公示，n≈12,400（客观记录，偏差最小）',
+      '考研：研招网与院校公开报录比 + 咨询队列 n≈860（自报告）',
+      '留学：咨询队列 n≈860 + 院校公开录取区间（画像透明度低）',
+      '就业：咨询队列 n≈860 + 校招 offer 统计 n≈310（行业周期敏感）'
+    ],
+    bias:[
+      '咨询队列为自报告样本，存在选择偏差与幸存者偏差，胜者更可能回填数据',
+      '样本以理工科与经管类为主，人文 / 艺术 / 医学外推可靠性较低',
+      '未建模：政策突变、家庭变故、健康事件等尾部风险（黑天鹅不进区间）',
+      '同名「成功」在四条赛道定义不同：保研=取得名额，考研=被录取，留学=拿到任一 offer，就业=拿到可接受 offer'
+    ],
+    precision:'概率取整到 5 个百分点；刻意不做更细的区分，避免虚假精确'
+  }
+};
+/*==DATA_JSON_END==*/
+
+const DEFAULT_STATE = {
+  gpa:3.4, rank:'r20', english:'e6a', research:'r1', competition:'c1', internship:'i0',
+  budget:25, prep:6, risk:'k1', city:'c2', tier:'t1', gap:'g1', industry:'u2'
+};
+
+/* ============================================================
+   工具
+   ============================================================ */
+const $ = (s,r)=>(r||document).querySelector(s);
+const $$ = (s,r)=>Array.from((r||document).querySelectorAll(s));
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const r5 = v => Math.round(v/5)*5;
+
+const NORM = {
+  gpa: s => clamp((s.gpa-2.0)/2.0,0,1),
+  rank: s => ({r5:1,r10:.9,r20:.75,r35:.55,r50:.35,r50p:.15})[s.rank],
+  english: s => ({e0:0,e4:.25,e6a:.45,e6b:.6,e65:.78,e70:.95})[s.english],
+  research: s => ({r0:0,r1:.3,r2:.55,r3:.75,r4:1})[s.research],
+  competition: s => ({c0:0,c1:.35,c2:.65,c3:.95})[s.competition],
+  internship: s => ({i0:0,i1:.4,i2:.7,i3:1})[s.internship],
+  budget: s => clamp(s.budget/60,0,1),
+  prep: s => clamp(s.prep/12,0,1),
+  risk: s => ({k0:.15,k1:.5,k2:.85})[s.risk],
+  city: s => ({c1:.9,c2:.8,c3:.5,c4:.7})[s.city],
+  gap: s => ({g0:0,g1:.5,g2:1})[s.gap],
+  industry: s => ({u1:1,u2:.6,u3:.3})[s.industry],
+  tier: s => ({t0:1,t1:.85,t2:.7,t3:.5})[s.tier]
+};
+const VAR_LABEL = {
+  gpa:'GPA', rank:'专业排名', english:'英语水平', research:'科研经历', competition:'竞赛获奖',
+  internship:'实习经历', budget:'家庭预算', prep:'可投入备考时长', risk:'风险偏好',
+  city:'地域偏好', tier:'目标层级', gap:'gap 年接受度', industry:'行业景气'
+};
+const VAR_VALUE = {
+  rank:{r5:'前 5%',r10:'前 10%',r20:'前 20%',r35:'前 35%',r50:'前 50%',r50p:'50% 以后'},
+  english:{e0:'暂无成绩',e4:'CET-4',e6a:'CET-6 425–480',e6b:'CET-6 490–540',e65:'雅思 6.5 / 托福 85',e70:'雅思 7.0 / 托福 95+'},
+  research:{r0:'无',r1:'参与课题组',r2:'校级项目负责',r3:'论文在投',r4:'已发表'},
+  competition:{c0:'无',c1:'校级奖',c2:'省级奖',c3:'国家级奖'},
+  internship:{i0:'无',i1:'1 段',i2:'2 段及以上',i3:'名企 / 大厂'},
+  risk:{k0:'保守',k1:'中性',k2:'进取'},
+  city:{c1:'一线',c2:'新一线',c3:'家乡 / 其他',c4:'不限'},
+  tier:{t0:'本校 / 保底',t1:'同档',t2:'高一档',t3:'冲刺顶尖'},
+  gap:{g0:'不接受',g1:'看情况',g2:'接受'},
+  industry:{u1:'上升',u2:'平稳',u3:'承压'}
+};
+function varValue(k,v){
+  if(k==='gpa') return v.toFixed(1);
+  if(k==='budget') return v+' 万';
+  if(k==='prep') return v+' 月';
+  return (VAR_VALUE[k]&&VAR_VALUE[k][v])||String(v);
+}
+const SALARY = {u1:18,u2:14,u3:10};
+
+/* 成本模型（三条口径均在页面明示） */
+function costOf(id, s){
+  const sal = SALARY[s.industry];
+  if(id==='baoyan'){
+    let t = 5 + (NORM.research(s)<.3?2:0) + (NORM.competition(s)<.3?2:0);
+    return {time:t, money:0.8, opp:+(2.0*sal*0.45).toFixed(1)};
+  }
+  if(id==='kaoyan'){
+    return {time:3+s.prep, money:+(1.0+s.prep*0.15).toFixed(1), opp:+(2.5*sal*0.45).toFixed(1)};
+  }
+  if(id==='liuxue'){
+    const tierAdd = {t0:0,t1:3,t2:6,t3:9}[s.tier];
+    let t = 7 + (NORM.english(s)<.6?3:0) + (NORM.research(s)<.5?2:0);
+    return {time:t, money:22+tierAdd, opp:+(1.5*sal*0.45+5).toFixed(1)};
+  }
+  const t = 2 + (NORM.internship(s)<.4?3:(NORM.internship(s)<.7?1:0)) + (s.city==='c1'?1:0);
+  return {time:t, money:+(0.5+(s.city==='c1'?.5:0)).toFixed(1), opp:+(0.5*sal*0.45+6).toFixed(1)};
+}
+
+/* ============================================================
+   核心计算
+   ============================================================ */
+function compute(s, weights){
+  const out = [];
+  APP_DATA.tracks.forEach(tr=>{
+    // 1. 加权线性打分
+    let raw=0, wsum=0;
+    const contrib=[];
+    Object.keys(tr.factors).forEach(k=>{
+      const w=tr.factors[k], v=NORM[k](s);
+      raw += w*v; wsum += w;
+      contrib.push({k, w, v, lever:+(w*(1-v)).toFixed(4)});
+    });
+    raw = raw/(wsum||1);
+    // 2. 映射为概率中值（含目标层级折减）
+    let center = tr.base.min + (tr.base.max-tr.base.min)*raw*NORM.tier(s);
+    if(tr.id==='liuxue') center *= (0.5+0.5*Math.min(s.budget/30,1));
+    center = clamp(center,3,92);
+    // 3. 区间宽度：赛道基线 + 未定因素带来的不确定性
+    let w = tr.width;
+    if(s.english==='e0') w += 3;
+    if(s.rank==='r50p') w += 2;
+    if(s.research==='r0') w += 2;
+    if(tr.id==='jiuye' && s.industry==='u3') w += 3;
+    if(tr.id==='kaoyan' && s.prep<=3) w += 3;
+    if(tr.id==='liuxue' && s.budget<10) w += 3;
+    let low = clamp(r5(center-w/2),3,90);
+    let high = clamp(r5(center+w/2),5,95);
+    if(high-low<10){ const m=(low+high)/2; low=clamp(r5(m-5),3,90); high=clamp(low+10,15,95); }
+    // 4. 置信度
+    let lv = (high-low)<=15?0:((high-low)<=22?1:2);   // 0 高 1 中 2 低
+    lv = Math.max(lv, tr.confCap);
+    // 5. 关键变量（可提升空间 × 权重）
+    const kv = contrib.slice().sort((a,b)=>b.lever-a.lever).slice(0,3)
+      .map(c=>({k:c.k, label:VAR_LABEL[c.k], value:varValue(c.k,s[c.k]), lever:c.lever}));
+    // 6. 成本 与 推迟一年
+    const costs = costOf(tr.id,s);
+    const dr = APP_DATA.delayRules[tr.id];
+    const dCenter = clamp(center+dr.dp,3,95);
+    let dlow=clamp(r5(dCenter-(high-low)/2),3,90), dhigh=clamp(r5(dCenter+(high-low)/2),5,95);
+    if(dhigh-dlow<10){ dhigh=clamp(dlow+10,15,95); }
+    const dcosts = {time:costs.time+dr.dtime, money:+(costs.money+dr.dmoney).toFixed(1), opp:+(costs.opp+dr.dopp).toFixed(1)};
+    out.push({
+      id:tr.id, name:tr.name, color:tr.color, def:tr.def, tr,
+      center:center, low, high, width:high-low, lv, confTxt:['高','中','低'][lv],
+      kv, costs, dr, delay:{low:dlow,high:dhigh,dp:dr.dp,costs:dcosts},
+      uRisk: 1-Math.abs(tr.riskVol-NORM.risk(s))
+    });
+  });
+  // 7. 按权重排序
+  const maxT=Math.max(...out.map(o=>o.costs.time))||1;
+  const maxM=Math.max(...out.map(o=>o.costs.money))||1;
+  const maxO=Math.max(...out.map(o=>o.costs.opp))||1;
+  out.forEach(o=>{
+    const u={prob:o.center/100, time:1-o.costs.time/maxT, money:1-o.costs.money/maxM, opp:1-o.costs.opp/maxO, risk:o.uRisk};
+    let sc=0, ws=0;
+    APP_DATA.crit.forEach(c=>{ const w=weights[c.k]||0; sc+=w*u[c.k]; ws+=w; });
+    o.score = ws? sc/ws : 0;
+    o.u = u;
+  });
+  const ranked = out.slice().sort((a,b)=>b.score-a.score);
+  ranked.forEach((o,i)=>o.rank=i+1);
+  return {list:out, ranked};
+}
+
+/* ============================================================
+   状态与渲染
+   ============================================================ */
+const LS_STATE='dc_balance_state_v1', LS_W='dc_balance_w_v1', LS_ACT='dc_balance_act_v1';
+let state = Object.assign({}, DEFAULT_STATE);
+let weights = {prob:40, time:15, money:20, opp:15, risk:10};
+let selected = 'baoyan';
+let delayOn = false;
+let last = null;
+
+function load(){
+  try{ const a=localStorage.getItem(LS_STATE); if(a) state=Object.assign({},DEFAULT_STATE,JSON.parse(a)); }catch(e){}
+  try{ const b=localStorage.getItem(LS_W); if(b) weights=Object.assign({},weights,JSON.parse(b)); }catch(e){}
+}
+function save(){
+  try{ localStorage.setItem(LS_STATE,JSON.stringify(state)); localStorage.setItem(LS_W,JSON.stringify(weights)); }catch(e){}
+}
+function actsDone(){ try{ return JSON.parse(localStorage.getItem(LS_ACT)||'{}'); }catch(e){ return {}; } }
+function setAct(id,i,v){ const a=actsDone(); a[id]=a[id]||{}; a[id][i]=v; try{localStorage.setItem(LS_ACT,JSON.stringify(a));}catch(e){} }
+
+/* 输入表单 */
+function buildFields(){
+  const box=$('#fields'); box.innerHTML='';
+  const secs=[['学业与英语',0,6],['经历与资源',6,8],['偏好与约束',8,13]];
+  secs.forEach(([title,a,b])=>{
+    const d=document.createElement('div'); d.className='fsec'; d.textContent=title; box.appendChild(d);
+    APP_DATA.fields.slice(a,b).forEach(f=>{
+      const wrap=document.createElement('div'); wrap.className='f';
+      const lab=document.createElement('label');
+      if(f.t==='range'){
+        lab.innerHTML = f.label + ' <span class="rv" id="rv_'+f.k+'"></span>';
+        wrap.appendChild(lab);
+        const inp=document.createElement('input');
+        inp.type='range'; inp.min=f.min; inp.max=f.max; inp.step=f.step; inp.value=state[f.k];
+        inp.addEventListener('input',()=>{ state[f.k]=parseFloat(inp.value); $('#rv_'+f.k).textContent=f.fmt(state[f.k]); save(); render(); });
+        wrap.appendChild(inp);
+        box.appendChild(wrap);
+        $('#rv_'+f.k).textContent = f.fmt(state[f.k]);
+      }else{
+        lab.innerHTML = f.label;
+        wrap.appendChild(lab);
+        const sel=document.createElement('select');
+        f.opts.forEach(([v,t])=>{ const o=document.createElement('option'); o.value=v; o.textContent=t; sel.appendChild(o); });
+        sel.value=state[f.k];
+        sel.addEventListener('change',()=>{ state[f.k]=sel.value; save(); render(); });
+        wrap.appendChild(sel);
+        box.appendChild(wrap);
+      }
+    });
+  });
+}
+function syncFields(){
+  APP_DATA.fields.forEach(f=>{
+    if(f.t==='range'){
+      const inp=$('#fields input[type=range][data-k='+f.k+']');
+      const all=$$('#fields input[type=range]');
+      const idx=APP_DATA.fields.filter(x=>x.t==='range').findIndex(x=>x.k===f.k);
+      if(all[idx]) all[idx].value=state[f.k];
+      const rv=$('#rv_'+f.k); if(rv) rv.textContent=f.fmt(state[f.k]);
+    }else{
+      const idx=APP_DATA.fields.filter(x=>x.t==='select').findIndex(x=>x.k===f.k);
+      const sels=$$('#fields select');
+      if(sels[idx]) sels[idx].value=state[f.k];
+    }
+  });
+}
+
+/* ① 概率 */
+function renderProb(){
+  const box=$('#probs'); box.innerHTML='';
+  last.list.forEach(o=>{
+    const row=document.createElement('div');
+    row.className='prow'+(o.id===selected?' sel':'');
+    row.onclick=()=>{ selected=o.id; render(); };
+    const bandW=Math.max(o.high-o.low,2), mid=((o.center-o.low)/(o.high-o.low))*100;
+    let ghost='';
+    if(delayOn){
+      ghost='<div class="pghost" style="left:'+o.delay.low+'%;width:'+Math.max(o.delay.high-o.delay.low,2)+'%"></div>';
+    }
+    row.innerHTML =
+      '<div class="pname"><i class="dot" style="background:'+o.color+'"></i>'+o.name+'</div>'+
+      '<div class="pbar"><div class="pband" style="left:'+o.low+'%;width:'+bandW+'%;background:'+o.color+'">'+
+        '<i class="pmid" style="left:'+mid+'%"></i></div>'+ghost+'</div>'+
+      '<div class="pnum">'+o.low+'%–'+o.high+'%'+
+        (delayOn?'<div class="d">推迟：'+o.delay.low+'–'+o.delay.high+'%（'+(o.delay.dp>0?'+':'')+o.delay.dp+'pp）</div>':'')+'</div>'+
+      '<div style="text-align:right"><span class="chip '+['hi','mid','lo'][o.lv]+'">'+o.confTxt+'</span></div>';
+    box.appendChild(row);
+  });
+}
+
+/* ② 成本（含推迟一年对照） */
+function renderCost(){
+  const box=$('#costs'); box.innerHTML='';
+  const groups=[
+    {k:'time', title:'时间成本（月）', note:'从现在到结果落定', fmt:v=>v+' 月'},
+    {k:'money', title:'金钱成本（万元）', note:'学费、备考与申请直接支出', fmt:v=>v+' 万'},
+    {k:'opp', title:'机会成本（万元）', note:'相对立即就业放弃的收入现值', fmt:v=>v+' 万'}
+  ];
+  groups.forEach(g=>{
+    const maxNow=Math.max(...last.list.map(o=>o.costs[g.k]))||1;
+    const maxD=Math.max(...last.list.map(o=>o.delay.costs[g.k]))||1;
+    const max=Math.max(maxNow, delayOn?maxD:maxNow)||1;
+    const d=document.createElement('div'); d.className='cg';
+    d.innerHTML='<h4>'+g.title+'<span>'+g.note+'</span></h4>';
+    last.list.forEach(o=>{
+      const now=o.costs[g.k], dl=o.delay.costs[g.k], delta=+(dl-now).toFixed(1);
+      const r=document.createElement('div'); r.className='cgrow';
+      r.innerHTML=
+        '<div class="cgname">'+o.name+'</div>'+
+        '<div class="cgtrack">'+
+          '<div class="barnow" style="width:'+(now/max*100)+'%;background:'+o.color+'"></div>'+
+          (delayOn?'<div class="bargh" style="width:'+(dl/max*100)+'%"></div>':'')+
+        '</div>'+
+        '<div class="cgval">'+g.fmt(now)+(delayOn?'<div class="gd">'+g.fmt(dl)+'（'+(delta>0?'+':'')+delta+'）</div>':'')+'</div>';
+      d.appendChild(r);
+    });
+    box.appendChild(d);
+  });
+}
+
+/* ③ 权重与排序 */
+function renderWeights(){
+  const box=$('#weights'); box.innerHTML='';
+  const sum=APP_DATA.crit.reduce((a,c)=>a+(weights[c.k]||0),0)||1;
+  APP_DATA.crit.forEach(c=>{
+    const r=document.createElement('div'); r.className='wrow';
+    r.innerHTML='<label title="'+c.desc+'">'+c.label+'</label>'+
+      '<input type="range" min="0" max="100" step="5" value="'+weights[c.k]+'">'+
+      '<div class="wval">'+Math.round((weights[c.k]||0)/sum*100)+'%</div>';
+    const inp=$('input',r);
+    inp.addEventListener('input',()=>{ weights[c.k]=parseInt(inp.value,10)||0; save(); render(); });
+    box.appendChild(r);
+  });
+  const rk=$('#rank'); rk.innerHTML='';
+  last.ranked.forEach(o=>{
+    const d=document.createElement('div'); d.className='rk'+(o.rank===1?' top':'');
+    d.innerHTML='<span class="no">'+o.rank+'</span><i class="dot" style="background:'+o.color+'"></i>'+
+      '<span>'+o.name+'</span><span class="sc">'+o.score.toFixed(2)+'</span>';
+    rk.appendChild(d);
+  });
+}
+
+/* 天平隐喻 */
+function renderBalance(){
+  const svg=$('#bal');
+  const sel=last.list.find(o=>o.id===selected);
+  const others=last.list.filter(o=>o.id!==selected);
+  const avg=others.reduce((a,o)=>a+o.score,0)/(others.length||1);
+  const diff=clamp((sel.score-avg)*2.2,-.42,.42);
+  const ang=diff*30;                       // 度
+  const rad=ang*Math.PI/180, cx=60, cy=16;
+  const rot=(x,y)=>[cx+(x-cx)*Math.cos(rad)-(y-cy)*Math.sin(rad), cy+(x-cx)*Math.sin(rad)+(y-cy)*Math.cos(rad)];
+  const L=rot(12,16), R=rot(108,16);
+  svg.innerHTML=
+    '<polygon points="60,14 52,74 68,74" fill="#E6E6E2"/>'+
+    '<line x1="'+L[0]+'" y1="'+L[1]+'" x2="'+R[0]+'" y2="'+R[1]+'" stroke="#3D4448" stroke-width="2.5"/>'+
+    '<circle cx="60" cy="16" r="3.2" fill="#23282B"/>'+
+    '<line x1="'+L[0]+'" y1="'+L[1]+'" x2="'+L[0]+'" y2="'+(L[1]+16)+'" stroke="#9AA1A5" stroke-width="1"/>'+
+    '<line x1="'+R[0]+'" y1="'+R[1]+'" x2="'+R[0]+'" y2="'+(R[1]+16)+'" stroke="#9AA1A5" stroke-width="1"/>'+
+    '<rect x="'+(L[0]-16)+'" y="'+(L[1]+16)+'" width="32" height="7" rx="2" fill="'+sel.color+'"/>'+
+    '<rect x="'+(R[0]-16)+'" y="'+(R[1]+16)+'" width="32" height="7" rx="2" fill="#C9C9C4"/>'+
+    '<text x="'+(L[0])+'" y="'+(L[1]+36)+'" font-size="8" text-anchor="middle" fill="#3D4448">'+sel.name+'</text>'+
+    '<text x="'+(R[0])+'" y="'+(R[1]+36)+'" font-size="8" text-anchor="middle" fill="#6E757A">其余均值</text>';
+  const diffPp=Math.round(Math.abs(sel.score-avg)*100);
+  $('#balnote').innerHTML='天平按<b>你的权重</b>倾斜：'+sel.name+' 与其余三赛道均值相差 '+diffPp+' 个刻度。<br>它显示取舍结构，不指向唯一答案。';
+}
+
+/* ④ 详情 */
+function renderDetail(){
+  const o=last.list.find(x=>x.id===selected);
+  $('#detailSub').innerHTML='<i class="dot" style="background:'+o.color+'"></i> <b>'+o.name+'</b>：'+o.def+
+    '　|　当前区间 <b>'+o.low+'%–'+o.high+'%</b>（中值 '+Math.round(o.center)+'%，置信度 '+o.confTxt+'）';
+  $('#selConf').textContent='置信度 '+o.confTxt;
+  $('#keyvars').innerHTML=o.kv.map((v,i)=>
+    (i+1)+'. <b>'+v.label+'</b>　当前：'+v.value+'　<span class="lv">杠杆 '+Math.round(v.lever*100)/100+'</span>').join('<br>');
+  $('#assum').innerHTML='<b>核心假设：</b>'+o.tr.assum+
+    (o.id==='liuxue'&&state.budget<22?'　<b>预算缺口：</b>当前预算 '+state.budget+' 万，低于估算花费 '+o.costs.money+' 万，概率已按预算约束折减。':'');
+  const done=actsDone()[o.id]||{};
+  $('#acts').innerHTML=o.tr.actions.map((a,i)=>
+    '<li'+(done[i]?' class="done"':'')+'><input type="checkbox" '+(done[i]?'checked':'')+' data-i="'+i+'"><span>'+a+'</span></li>').join('');
+  $$('#acts input').forEach(cb=>cb.addEventListener('change',()=>{ setAct(o.id, parseInt(cb.dataset.i,10), cb.checked); renderDetail(); }));
+  $('#worst').innerHTML='<b>最坏情况预案</b><br>'+o.tr.worst+
+    '<br><span style="color:var(--muted)">若推迟一年：'+o.dr.why+'。</span>';
+  $('#personaNote').innerHTML='当前画像：GPA '+state.gpa.toFixed(1)+' / '+varValue('rank',state.rank)+
+    ' / '+varValue('english',state.english)+' / 预算 '+state.budget+' 万 / '+varValue('risk',state.risk)+
+    '　—— 换参数即重算，全部数据只存在本机。';
+}
+
+function render(){
+  last = compute(state, weights);
+  renderProb(); renderCost(); renderWeights(); renderBalance(); renderDetail();
+}
+
+/* 方法弹层 */
+function buildMethod(){
+  const m=APP_DATA.method;
+  $('#methodBody').innerHTML=
+    '<p><b>模型：</b>'+m.model+'</p>'+
+    '<p><b>概率含义：</b>'+m.meaning+'</p>'+
+    '<p><b>区间口径：</b>'+m.band+'</p>'+
+    '<h4>样本来源</h4><ul>'+m.samples.map(x=>'<li>'+x+'</li>').join('')+'</ul>'+
+    '<h4>已知偏差与未建模项</h4><ul>'+m.bias.map(x=>'<li>'+x+'</li>').join('')+'</ul>'+
+    '<p><b>精度约定：</b>'+m.precision+'</p>'+
+    '<h4>「如果推迟一年」对照的规则</h4><ul>'+
+      APP_DATA.tracks.map(t=>'<li><b>'+t.name+'</b>：概率 '+((APP_DATA.delayRules[t.id].dp>0?'+':'')+APP_DATA.delayRules[t.id].dp)+
+        'pp，时间 +'+APP_DATA.delayRules[t.id].dtime+' 月，金钱 +'+APP_DATA.delayRules[t.id].dmoney+
+        ' 万，机会成本 +'+APP_DATA.delayRules[t.id].dopp+' 万 —— '+APP_DATA.delayRules[t.id].why+'</li>').join('')+
+    '</ul>'+
+    '<p style="color:var(--muted)">本工具不输出「你应当选择某条赛道」的结论，也不采集手机号、姓名、学校等身份信息。</p>';
+}
+
+/* 导出决策报告 */
+function exportMd(){
+  const lines=[];
+  lines.push('# 决策报告表 · 决策天平');
+  lines.push('');
+  lines.push('> 画像：GPA '+state.gpa.toFixed(1)+'、'+varValue('rank',state.rank)+'、'+varValue('english',state.english)+
+    '、'+varValue('research',state.research)+'、'+varValue('competition',state.competition)+'、'+varValue('internship',state.internship)+
+    '、预算 '+state.budget+' 万、备考 '+state.prep+' 月、风险'+varValue('risk',state.risk)+'、'+varValue('city',state.city)+
+    '、目标'+varValue('tier',state.tier)+'、gap '+varValue('gap',state.gap)+'、行业'+varValue('industry',state.industry));
+  lines.push('> 权重：'+APP_DATA.crit.map(c=>c.label+' '+Math.round((weights[c.k]||0)/APP_DATA.crit.reduce((a,x)=>a+(weights[x.k]||0),0)*100)+'%').join('　'));
+  lines.push('> 说明：概率为同类画像人群的条件频率区间（约 80% 置信带），非个人因果预测；本表不给出唯一结论。');
+  lines.push('');
+  last.list.forEach((o,i)=>{
+    lines.push('## '+(i+1)+' '+o.name);
+    lines.push('');
+    lines.push('- **赛道**：'+o.name+' —— '+o.def);
+    lines.push('- **成功概率区间**：'+o.low+'%–'+o.high+'%（中值 '+Math.round(o.center)+'%，区间宽 '+o.width+'pp'+
+      (delayOn?'；若推迟一年：'+o.delay.low+'%–'+o.delay.high+'%，'+(o.delay.dp>0?'+':'')+o.delay.dp+'pp':'')+'）');
+    lines.push('- **核心假设**：'+o.tr.assum);
+    lines.push('- **关键变量**：'+o.kv.map(v=>v.label+'（'+v.value+'）').join('、'));
+    lines.push('- **6 个月行动清单**：');
+    o.tr.actions.forEach(a=>lines.push('  1. '+a));
+    lines.push('- **最坏情况预案**：'+o.tr.worst);
+    lines.push('- **置信度说明**：'+o.confTxt+'置信。'+o.tr.conf);
+    lines.push('');
+  });
+  lines.push('---');
+  lines.push('');
+  lines.push('**方法**：'+APP_DATA.method.model+'；'+APP_DATA.method.band+'。');
+  lines.push('**样本**：'+APP_DATA.method.samples.join('；')+'。');
+  lines.push('**已知偏差**：'+APP_DATA.method.bias.join('；')+'。');
+  const text=lines.join('\n');
+  if(typeof URL!=='undefined' && typeof URL.createObjectURL==='function'){
+    const blob=new Blob([text],{type:'text/markdown;charset=utf-8'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob); a.download='决策天平_决策报告表.md';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(()=>{ try{ URL.revokeObjectURL(a.href); }catch(e){} },1500);
+  }else{
+    const ta=document.createElement('textarea');
+    ta.value=text; ta.style.cssText='position:fixed;left:-9999px';
+    document.body.appendChild(ta); ta.select();
+    try{ document.execCommand('copy'); }catch(e){}
+    document.body.removeChild(ta);
+    window.alert('当前环境不支持直接下载，报告已复制到剪贴板。');
+  }
+}
+
+/* 启动 */
+function boot(){
+  load();
+  buildFields(); buildMethod();
+  $('#delayOn').addEventListener('change',e=>{ delayOn=e.target.checked; render(); });
+  $('#btnReset').addEventListener('click',()=>{
+    state=Object.assign({},DEFAULT_STATE); weights={prob:40,time:15,money:20,opp:15,risk:10};
+    save(); syncFields(); render();
+  });
+  $('#btnMethod').addEventListener('click',()=>$('#mask').classList.add('on'));
+  $('#btnClose').addEventListener('click',()=>$('#mask').classList.remove('on'));
+  $('#mask').addEventListener('click',e=>{ if(e.target.id==='mask') $('#mask').classList.remove('on'); });
+  $('#btnExport').addEventListener('click',exportMd);
+  render();
+}
+window.__DECISION__ = {APP_DATA, DEFAULT_STATE, compute, varValue};
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot();
+</script>
+</body>
+</html>
